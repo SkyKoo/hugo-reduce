@@ -1,14 +1,100 @@
 package main
 
-import(
+import (
+  "bytes"
   "fmt"
+  "os"
+  "path/filepath"
+
+  "github.com/spf13/afero"
+  "golang.org/x/tools/txtar"
+
+  "github.com/SkyKoo/hugo-reduce/hugofs"
   "github.com/SkyKoo/hugo-reduce/log"
+  "github.com/SkyKoo/hugo-reduce/hugolib"
 )
 
 func main() {
   // 0. local example contents
 
   log.Process("main", "prepare example project file systems")
+  tempDir, clean, err := CreateTempDir(hugofs.Os, "go-hugo-temp-dir")
+  if err != nil {
+    clean()
+    os.Exit(-1)
+  }
+
+  var afs afero.Fs
+  afs = afero.NewOsFs()
+  prepareFs(tempDir, afs)
+
+  // 1. config
+  log.Process("main", "load configurations from config.toml and themes")
+  cfg, _, err := hugolib.LoadConfig(
+    hugolib.ConfigSourceDescriptor{
+      WorkingDir: tempDir,
+      Fs:         afs,
+      Filename:   "config.toml",
+    },
+  )
+  fmt.Printf("%#v\n", cfg)
 
   fmt.Println("===temp dir at last > ...")
+  fmt.Println(tempDir)
+}
+
+func prepareFs(workingDir string, afs afero.Fs) {
+  files := `
+-- config.toml --
+theme = "mytheme"
+contentDir = "mycontent"
+-- myproject.txt --
+Hello project!
+-- theme/mytheme/mytheme.txt --
+Hello theme!
+-- mycontent/blog/post.md --
+---
+title: "Post Title"
+---
+### first blog
+Hello Blog
+-- layouts/index.html --
+{{ $entries := (readDir ".") }}
+START:|{{ range $entry := $entries }}{{ if not $entry.IsDir }}{{ $entry.Name }}|{{ end }}{{ end }}:END:
+-- layouts/_default/single.html --
+{{ .content }}
+===
+Static content
+===
+
+  `
+
+  // use txtar parse content, and save to data
+  data := txtar.Parse([]byte(files))
+  for _, f := range data.Files { // deal with every file
+    filename := filepath.Join(workingDir, f.Name) // whole path
+    data := bytes.TrimSuffix(f.Data, []byte("\n"))
+    // create dir with filename
+    err := afs.MkdirAll(filepath.Dir(filename), 0777)
+    if err != nil {
+      fmt.Println(err)
+    }
+
+    // write content to the file
+    err = afero.WriteFile(afs, filename, data, 0666)
+    if err != nil {
+      fmt.Println(err)
+    }
+  }
+}
+
+// CreateTempDir creates a temp dir in the given filesystem and
+// return the dirname and a func that removes it when done.
+func CreateTempDir(fs afero.Fs, prefix string) (string, func(), error) {
+  tempDir, err := afero.TempDir(fs, "", prefix)
+  if err != nil {
+    return "", nil, err
+  }
+
+  return tempDir, func() { fs.RemoveAll(tempDir) }, nil
 }
