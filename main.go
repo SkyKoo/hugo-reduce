@@ -28,7 +28,9 @@ func main() {
   afs = afero.NewOsFs()
   prepareFs(tempDir, afs)
 
-  // 1. config
+  // 1. config, this is the most important part
+  // 2. themes is a part of modules
+  // 3. so, the first load config, and second load modules
   log.Process("main", "load configurations from config.toml and themes")
   cfg, _, err := hugolib.LoadConfig(
     hugolib.ConfigSourceDescriptor{
@@ -44,6 +46,7 @@ func main() {
 }
 
 func prepareFs(workingDir string, afs afero.Fs) {
+  // attention, then content should not have any space at the beginning of line.
   files := `
 -- config.toml --
 theme = "mytheme"
@@ -69,7 +72,8 @@ Static content
 
   `
 
-  // use txtar parse content, and save to data
+  // 1. use txtar parse content, and create right dirs
+  // 2. write content to the file
   data := txtar.Parse([]byte(files))
   for _, f := range data.Files { // deal with every file
     filename := filepath.Join(workingDir, f.Name) // whole path
@@ -80,7 +84,6 @@ Static content
       fmt.Println(err)
     }
 
-    // write content to the file
     err = afero.WriteFile(afs, filename, data, 0666)
     if err != nil {
       fmt.Println(err)
