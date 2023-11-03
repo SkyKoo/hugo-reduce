@@ -113,6 +113,10 @@ func (l configLoader) loadModulesConfig() (modules.Config, error) {
   return modConfig, nil
 }
 
+func (l configLoader) collectModules(modConfig modules.Config, v1 config.Provider, hookBeforeFinalize func(m *modules.ModulesConfig) error) (modules.Modules, []string, error) {
+  workingDir := l.WorkingDir
+}
+
 // 1. first, load config file
 // 2. second, load modules
 // 3. Important things, how to save config and modules that have been loaded.
