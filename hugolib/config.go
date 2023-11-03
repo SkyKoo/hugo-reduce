@@ -11,6 +11,7 @@ import (
   "github.com/SkyKoo/hugo-reduce/config"
   "github.com/SkyKoo/hugo-reduce/log"
   "github.com/SkyKoo/hugo-reduce/modules"
+  "github.com/SkyKoo/hugo-reduce/langs"
 )
 
 // ConfigSourceDescriptor describes where to find the config (e.g. config.toml etc.).
@@ -142,5 +143,36 @@ func LoadConfig(d ConfigSourceDescriptor) (config.Provider, []string, error) {
     return l.cfg, configFiles, err
   }
 
+  // Need to run these after the modules are loaded, but before
+  // they are finalized.
+  collectHook := func(m *modules.ModulesConfig) error {
+    mods := m.ActiveModules
+    if err := l.loadLanguageSettings(nil); err != nil {
+      return err
+    }
+
+    // Apply default project mounts.
+    // Default folder structure for hugo project
+    log.Process("collectHook", "apply default mounts to project module")
+    if err := modules.ApplyProjectConfigDefaults(l.cfg, mods[0]); err != nil {
+      return err
+    }
+    return nil
+  }
+
+  log.Process("LoadConfig", "collect modules with modlesConfig")
+  _, modulesConfigFiles, modulesCollectErr := l.collectModules(modulesConfig, l.cfg, collectHook)
+  if modulesCollectErr != nil {
+    return l.cfg, configFiles, modulesCollectErr
+  }
+
+  configFiles = append(configFiles, modulesConfigFiles...)
+
+  log.Process("LoadConfig", "done")
   return l.cfg, configFiles, err
+}
+
+func (l configLoader) loadLanguageSettings(oldLangs langs.Languages) error {
+  _, err := langs.loadLanguageSettings(l.cfg, oldLangs)
+  return err
 }

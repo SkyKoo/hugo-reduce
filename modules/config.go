@@ -68,3 +68,8 @@ func decodeConfig(cfg config.Provider) (Config, error) {
 }
 
 var DefaultModuleConfig = Config{}
+
+// ApplyProjectConfigDefaults applies default/missing module configuration for
+// the main project.
+func ApplyProjectConfigDefaults(cfg config.Provider, mod Module) error {
+}

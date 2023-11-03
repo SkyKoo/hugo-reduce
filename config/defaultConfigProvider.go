@@ -43,7 +43,14 @@ func (c *defaultConfigProvider) GetInt(k string) int {
 }
 
 func (c *defaultConfigProvider) IsSet(k string) bool {
-  return false
+  var found bool
+  c.mu.RLock()
+  key, m := c.getNestedKeyAndMap(strings.ToLower(k), false)
+  if m != nil {
+    _, found = m[key]
+  }
+  c.mu.RUnlock()
+  return found
 }
 
 func (c *defaultConfigProvider) GetString(k string) string {
@@ -51,7 +58,11 @@ func (c *defaultConfigProvider) GetString(k string) string {
 }
 
 func (c *defaultConfigProvider) GetParams(k string) maps.Params {
-  return nil
+  v := c.Get(k)
+  if v == nil {
+    return nil
+  }
+  return v.(maps.Params)
 }
 
 func (c *defaultConfigProvider) GetStringMap(k string) map[string]any {
