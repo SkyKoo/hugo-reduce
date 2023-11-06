@@ -8,6 +8,7 @@ import (
   "github.com/spf13/afero"
 
   "github.com/SkyKoo/hugo-reduce/common/maps"
+  cpaths "github/SkyKoo/hugo-reduce/common/paths"
   "github.com/SkyKoo/hugo-reduce/config"
   "github.com/SkyKoo/hugo-reduce/log"
   "github.com/SkyKoo/hugo-reduce/modules"
@@ -115,6 +116,44 @@ func (l configLoader) loadModulesConfig() (modules.Config, error) {
 
 func (l configLoader) collectModules(modConfig modules.Config, v1 config.Provider, hookBeforeFinalize func(m *modules.ModulesConfig) error) (modules.Modules, []string, error) {
   workingDir := l.WorkingDir
+  themesDir := cpaths.ApsPathify(l.WorkingDir, v1.GetString("themesDir"))
+
+  var configFilenames []string
+
+  hook := func(m *modules.ModulesConfig) error {
+    if hookBeforeFinalize != nil {
+      return hookBeforeFinalize(m)
+    }
+    return nil
+  }
+
+  modulesClient := modules.NewClient(modules.ClientConfig{
+    Fs: l.Fs,
+    hookBeforeFinalize: hook,
+    workingDir: workingDir,
+    ThemesDir: themesDir,
+    ModulesConfig: modConfig,
+  })
+
+  v1.Set("modulesClient", modulesClient)
+
+  modulesConfig, err := modulesClient.Collect()
+
+  // Avoid recreating these later.
+  log.Process("collectModules", "set active modules to config with key 'allModules'")
+  for i, m := range modulesConfig.ActiveModules {
+    fmt.Println(i)
+    fmt.Printf("%#v\n", m)
+  }
+  v1.Set("allModules", modulesConfig.ActiveModules)
+
+  if modulesConfig.GoModulesFilename != "" {
+    // We want to watch this for changes and trigger rebuild on version
+    // changes etc.
+    configFilenames = append(configFilenames, modulesConfig.GoModulesFilename)
+  }
+
+  return modulesConfig.ActiveModules, configFilenames, err
 }
 
 // 1. first, load config file

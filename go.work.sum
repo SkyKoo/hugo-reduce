@@ -1,0 +1,3 @@
+github.com/golang/protobuf v1.4.3 h1:JjCZWpVbqXDqFVmTfYWEVTMIYrL/NPdPSCHPJ0T/raM=
+google.golang.org/genproto v0.0.0-20210226172003-ab064af71705 h1:PYBmACG+YEv8uQPW0r1kJj8tR+gkF0UWq7iFdUezwEw=
+google.golang.org/protobuf v1.25.0 h1:Ejskq+SyPohKW+1uil0JJMtmHCgJPJ/qWTxr8qp+R4c=
