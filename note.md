@@ -14,6 +14,7 @@ hugo 的配置加载分为几个步骤：
 # III. 主要的数据结构
 想要了解 hugo 源码，必须要了解其中重要的数据结构，其体现了作者的设计思想，非常重要！
 
+### 配置相关数据结构
 **configLoader、ConfigSourceDescriptor 和 Provider**
 ```go
 type configLoader struct {
@@ -59,6 +60,121 @@ type ConfigSourceDescriptor struct {
 3. ConfigSourceDescriptor 描述的是一个具体的配置文件，它有文件名，以及操作它的虚拟文件系统对象。
 4. 所以， configLoader 表达的就是一个配置文件和操作这个配置文件的工具集合，和配置文件读取到内存中的内容。
 
+### 模块相关数据结构
+**Config、Mount 和 Inport**
+```go
+type Import struct {
+  Path                string // Module path
+  pathProjectReplaced bool // Set when Path is replaced in project config.
+  IgnoreConfig        bool // Ignore any config in config.toml (will still follow imports).
+  IgnoreImport        bool  // Do not follow any configured imports.
+  NoMounts            bool  // Do not mount any folder in this import.
+  NoVendor            bool  // Never vendor this import (only allowed in main project).
+  Disable             bool  // Turn off this module.
+  Mounts              []Mount
+}
+
+type Mount struct {
+  Source string // relative path in source repo, e.g. "scss"
+  Target string // relative target path, e.g. "assets/boostrap/scss"
+
+  Lang string // any language code associated with this mount.
+}
+
+// Config holds a module config.
+type Config struct {
+  Mounts  []Mount
+  Imports []Import
+
+  // Meta info about this module (license information etc.).
+  Params map[string]any
+}
+```
+三者的关系：
+1. Config 包含了 Mount 和 Import 的列表
+2. Import 中包含了 Mount 列表，应该是用于 Module 中包含了其他 Moudle 的情况
+
+**ClientConfig 和 Client**
+```go
+// ClientConfig configures the module Client.
+type ClientConfig struct {
+  // Fs to get the source
+  Fs afero.Fs
+
+  // If set, it will be run before wo do any duplicate checks for modules
+  // etc.
+  // It must be set in our case, for default project structure
+  HookBeforeFinalize func(m *ModulesConfig) error
+
+  // Absolute path to the project dir.
+  WorkingDir string
+
+  // Absolute path to the project's themes dir.
+  ThemesDir string
+
+  // Read from config file and transferred
+  ModuleConfig Config
+}
+
+// Client contains most of the API provided by this package.
+type Client struct {
+  fs afero.Fs
+
+  ccfg ClientConfig
+
+  // The top level module config
+  moduleConfig Config
+
+  // Set when Go modules are initialized in the current repo, that is:
+  // a go.mod file exists.
+  GoModulesFilename string
+}
+```
+Client 是 hugo 用来加载 module 的类，之所以叫作 Client 它其实是一个 go module 的客户端
+
+**collector、collected 和 goModules**
+```go
+// Collects and creates a module tree.
+type collector struct {
+  *Client
+
+  // Store away any non-fatal error and return at the end.
+  err error
+
+  // Set to disable any Tidy operation in the end.
+  skipTidy bool
+
+  *collected
+}
+
+type collected struct {
+  // Pick the first and prevent circular loops.
+  seen map[string]bool
+
+  // Set if a Go modules enabled project.
+  gomods goModules
+
+  // Ordered list if collected modules, including Go Modules and theme
+  // components stored below /themes.
+  modules Modules
+}
+
+type goModule struct {
+  Path     string         // module Path
+  Version  string         // module version
+  Versions []string       // available module version (with -versions)
+  Replace  *goModule      // replaced by this goModule
+  Time     *time.Time     // time version was created
+  Update   *goModule      // avaiable update, if any (with -u)
+  Main     bool           // is this the main module?
+  Indrect  bool           // is this module  only an indirect dependency of main module?
+  Dir      string         // directory holding files for this module, if any
+  GoMod    string         // path to go.mod file for this module, if any
+  Error    *goModuleError // error loading module
+}
+```
+收集器
+
 # IV. 配置加载调用过程
 **1. main 函数中调用 hugolib.LoadConfig 函数, 作为入口**
 ```go
@@ -85,9 +201,7 @@ func LoadConfig(d ConfigSourceDescriptor) (config.Provider, []string, error) {
   ...
   filename, err := l.loadConfig(d.Filename)
   ...
-  if err := l.applyConfigDefaults(); err != nil {
-    return l.cfg, configFiles, err
-  }
+  l.applyConfigDefaults()
   ...
   modulesConfig, err := l.loadModulesConfig()
   ...
@@ -156,7 +270,32 @@ func (l configLoader) applyConfigDefaults() error {
   return nil
 }
 ```
-**5. 调用 loadModulesConfig 函数加载 modules，主题 theme 是作为一个 module 处理的，所以这里也可以将处理主题的加载**
+**5. 调用 loadModulesConfig 函数读取 modules 的配置，主题 theme 是作为一个 module 处理的，所以这里也可以将主题的配置进行加载**
+```go
+  ...
+  modulesConfig, err := l.loadModulesConfig()
+  ...
+}
+```
+
+**6. 调用 collectModules 函数收集 Modules, 同时定义了一个 hook 函数，作为回调**
+```go
+  // Need to run these after the modules are loaded, but before
+  // they are finalized.
+  collectHook := func(m *modules.ModulesConfig) error {
+    mods := m.ActiveModules
+    l.loadLanguageSettings(nil)
+
+    // Apply default project mounts.
+    // Default folder structure for hugo project
+    modules.ApplyProjectConfigDefaults(l.cfg, mods[0])
+  }
+
+  _, modulesConfigFiles, modulesCollectErr := l.collectModules(modulesConfig, l.cfg, collectHook)
+```
+可以看到 hook 函数中做了两件事，针对每一个收集到的 Module 都需要加载 语言配置 和 Module 的默认配置
+
+同时还要区分活跃和不活跃的 模块， 并不是所有加载的模块都有效，只有活跃的才有效
 
 # V. 其他细节
 ### 递归处理 map[string]interface{} 类型的配置函数

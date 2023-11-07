@@ -2,10 +2,26 @@ package langs
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/SkyKoo/hugo-reduce/config"
 )
+
+// These are the settings that should only be looked up in the global Viper
+// config and not per language.
+// This list may not be complete, but contains only settings that we know
+// will be looked up in both.
+// This isn't perfect, but it is ultimately the user who shoots him/herself in
+// the foot.
+// See the pathSpec.
+var globalOnlySettings = map[string]bool{
+  strings.ToLower("defaultContentLanguage"): true,
+  strings.ToLower("multiligual"):            true,
+  strings.ToLower("assetDir"):               true,
+  strings.ToLower("resourceDir"):            true,
+  strings.ToLower("build"):                  true,
+}
 
 // Language manages specific-language configuration.
 type Language struct {
@@ -83,5 +99,35 @@ func (l *Language) loadLocation(tzStr string) error {
   }
   l.location = location
 
+  return nil
+}
+
+// IsMultihost returns whether there are more than one language and at least one of
+// the languages has baseURL specificed on the language level.
+func (l Languages) IsMultihost() bool {
+  if len(l) <= 1 {
+    return false
+  }
+
+  for _, lang := range l {
+    if lang.GetLocal("baseURL") != nil {
+      return true
+    }
+  }
+  return false
+}
+
+// GetLocal gets a configuration value set on language level. It Will
+// not fall back to any global value.
+// It will return nil if a value with the given key cannot be found.
+// For internal use.
+func (l *Language) GetLocal(key string) any {
+  if l == nil {
+    panic("language not set")
+  }
+  key = strings.ToLower(key)
+  if !globalOnlySettings[key] {
+    return l.LocalCfg.Get(key)
+  }
   return nil
 }

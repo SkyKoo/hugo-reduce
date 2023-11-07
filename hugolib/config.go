@@ -127,18 +127,21 @@ func (l configLoader) collectModules(modConfig modules.Config, v1 config.Provide
     return nil
   }
 
+  // Cretate ModulesClient to do the collect job
   modulesClient := modules.NewClient(modules.ClientConfig{
     Fs: l.Fs,
-    hookBeforeFinalize: hook,
-    workingDir: workingDir,
+    HookBeforeFinalize: hook,
+    WorkingDir: workingDir,
     ThemesDir: themesDir,
-    ModulesConfig: modConfig,
+    ModuleConfig: modConfig,
   })
 
   v1.Set("modulesClient", modulesClient)
 
+  // Collect
   modulesConfig, err := modulesClient.Collect()
 
+  // Active
   // Avoid recreating these later.
   log.Process("collectModules", "set active modules to config with key 'allModules'")
   for i, m := range modulesConfig.ActiveModules {
@@ -216,6 +219,6 @@ func LoadConfig(d ConfigSourceDescriptor) (config.Provider, []string, error) {
 }
 
 func (l configLoader) loadLanguageSettings(oldLangs langs.Languages) error {
-  _, err := langs.loadLanguageSettings(l.cfg, oldLangs)
+  _, err := langs.LoadLanguageSettings(l.cfg, oldLangs)
   return err
 }

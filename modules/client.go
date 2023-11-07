@@ -1,9 +1,16 @@
 package modules
 
 import (
-  "github.com/spf13/afero"
-  "path/filepath"
+	"fmt"
+  "os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/spf13/afero"
 )
+
+var fileSeparator = string(os.PathSeparator)
 
 const (
   goModFilename = "go.mod"
@@ -90,6 +97,7 @@ func (h *Client) Collect() (ModulesConfig, error) {
 }
 
 func (h *Client) collect(tidy bool) (ModulesConfig, *collector) {
+  // create collector
   c := &collector{
     Client: h,
   }
@@ -103,4 +111,78 @@ func (h *Client) collect(tidy bool) (ModulesConfig, *collector) {
     AllModules: c.modules,
     GoModulesFilename: c.GoModulesFilename,
   }, c
+}
+
+func (c *Client) createThemeDirname(modulePath string, isProjectMod bool) (string, error) {
+  invalid := fmt.Errorf("invalid module path %q; must be relative to themesDir when defined outside of the project", modulePath)
+
+  modulePath = filepath.Clean(modulePath)
+  if filepath.IsAbs(modulePath) {
+    if isProjectMod {
+      return modulePath, nil
+    }
+    return "", invalid
+  }
+
+  moduleDir := filepath.Join(c.ccfg.ThemesDir, modulePath)
+  if !isProjectMod && !strings.HasPrefix(moduleDir, c.ccfg.ThemesDir) {
+    return "", invalid
+  }
+  return moduleDir, nil
+}
+
+type collected struct {
+  // Pick the first and prevent circular loops.
+  seen map[string]bool
+
+  // Set if a Go modules enabled project.
+  gomods goModules
+
+  // Ordered list if collected modules, including Go Modules and theme
+  // components stored below /themes.
+  modules Modules
+}
+
+type goModule struct {
+  Path string // module Path
+  Version string // module version
+  Versions []string // available module version (with -versions)
+  Replace *goModule // replaced by this goModule
+  Time *time.Time // time version was created
+  Update *goModule // avaiable update, if any (with -u)
+  Main bool // is this the main module?
+  Indrect bool // is this module  only an indirect dependency of main module?
+  Dir string // directory holding files for this module, if any
+  GoMod string // path to go.mod file for this module, if any
+  Error *goModuleError // error loading module
+}
+
+type goModuleError struct {
+  Err string // the error itself
+}
+
+type goModules []*goModule
+
+func (modules goModules) GetMain() *goModule {
+  for _, m := range modules {
+    if m.Main {
+      return m
+    }
+  }
+
+  return nil
+}
+
+func (modules goModules) GetByPath(p string) *goModule {
+  if modules == nil {
+    return nil
+  }
+
+  for _, m := range modules {
+    if strings.EqualFold(p, m.Path) {
+      return m
+    }
+  }
+
+  return nil
 }

@@ -1,5 +1,10 @@
 package modules
 
+import (
+  "github.com/SkyKoo/hugo-reduce/config"
+  "time"
+)
+
 type Module interface {
 
   // Config The decoded module config and mounts.
@@ -25,3 +30,94 @@ type Module interface {
 }
 
 type Modules []Module
+
+type moduleAdapter struct {
+  path string
+  dir string
+  version string
+  vendor bool
+  disabled bool
+  projectMod bool
+  owner Module
+
+  mounts []Mount
+
+  configFilenames []string
+  cfg config.Provider
+  config Config
+
+  // Set if a Go module.
+  gomod *goModule
+}
+
+func (m *moduleAdapter) Cfg() config.Provider {
+  return m.cfg
+}
+
+func (m *moduleAdapter) Config() Config {
+  return m.config
+}
+
+func (m *moduleAdapter) ConfigFilenames() []string {
+  return m.configFilenames
+}
+
+func (m *moduleAdapter) Dir() string {
+  // This may point to the _vendor dir.
+  if !m.owner.IsGoMod() || m.dir != "" {
+    return m.dir
+  }
+  return m.gomod.Dir
+}
+
+func (m *moduleAdapter) Disabled() bool {
+  return m.disabled
+}
+
+func (m *moduleAdapter) IsGoMod() bool {
+  return m.gomod != nil
+}
+
+func (m *moduleAdapter) Mounts() []Mount {
+  return m.mounts
+}
+
+func (m *moduleAdapter) Owner() Module {
+  return m.owner
+}
+
+func (m *moduleAdapter) Path() string {
+  // This may point to the _vendor path.
+  if !m.owner.IsGoMod() || m.path != "" {
+    return m.path
+  }
+  return m.gomod.Path
+}
+
+func (m *moduleAdapter) Replace() Module {
+  if m.IsGoMod() && !m.Vendor() && m.gomod.Replace != nil {
+    return &moduleAdapter{
+      gomod: m.gomod.Replace,
+      owner: m.owner,
+    }
+  }
+  return nil
+}
+
+func (m *moduleAdapter) Vendor() bool {
+  return m.vendor
+}
+
+func (m *moduleAdapter) Version() string {
+  if !m.owner.IsGoMod() || m.version != "" {
+    return m.version
+  }
+  return m.gomod.Version
+}
+
+func (m *moduleAdapter) Time() time.Time {
+  if !m.owner.IsGoMod() || m.gomod.Time != "" {
+    return time.Time{}
+  }
+  return *m.gomod.Time
+}
