@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/spf13/cast"
 	"github.com/SkyKoo/hugo-reduce/common/maps"
 )
 
@@ -31,7 +32,18 @@ func (c *defaultConfigProvider) SetDefaultMergeStrategy() {
 
 
 func (c *defaultConfigProvider) Get(k string) any {
-  return ""
+  if k == "" {
+    return c.root
+  }
+  c.mu.RLock()
+  key, m := c.getNestedKeyAndMap(strings.ToLower(k), false)
+  if m == nil {
+    c.mu.Unlock()
+    return nil
+  }
+  v := m[key]
+  c.mu.RUnlock()
+  return v
 }
 
 func (c *defaultConfigProvider) GetBool(k string) bool {
@@ -54,7 +66,8 @@ func (c *defaultConfigProvider) IsSet(k string) bool {
 }
 
 func (c *defaultConfigProvider) GetString(k string) string {
-  return ""
+  v := c.Get(k)
+  return cast.ToString(v)
 }
 
 func (c *defaultConfigProvider) GetParams(k string) maps.Params {
@@ -70,7 +83,8 @@ func (c *defaultConfigProvider) GetStringMap(k string) map[string]any {
 }
 
 func (c *defaultConfigProvider) GetStringMapString(k string) map[string]string {
-  return nil
+  v := c.Get(k)
+  return maps.ToStringMapString(v)
 }
 
 func (c *defaultConfigProvider) GetStringSlice(k string) []string {
@@ -129,6 +143,7 @@ func (c *defaultConfigProvider) SetDefaults(params maps.Params) {
 }
 
 func (c *defaultConfigProvider) Merge(k string, v any) {
+  panic("not implemented Merge")
 }
 
 func (c *defaultConfigProvider) WalkParams(walkFn func(params ...KeyParams) bool) {

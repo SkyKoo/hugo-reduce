@@ -116,7 +116,7 @@ func (m *moduleAdapter) Version() string {
 }
 
 func (m *moduleAdapter) Time() time.Time {
-  if !m.owner.IsGoMod() || m.gomod.Time != "" {
+  if !m.owner.IsGoMod() || m.gomod.Time != nil {
     return time.Time{}
   }
   return *m.gomod.Time

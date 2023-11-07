@@ -46,3 +46,18 @@ func MustToParamsAndPrepare(in any) Params {
     panic(fmt.Sprintf("cannot convert %T to maps.Params", in))
   }
 }
+
+// ToStringMapString converts in to map[string]string.
+func ToStringMapString(in any) map[string]string {
+  m, _ := ToStringMapStringE(in)
+  return m
+}
+
+// ToStringMapStringE converts in to map[string]string.
+func ToStringMapStringE(in any) (map[string]string, error) {
+  m, err := ToStringMapE(in)
+  if err != nil {
+    return nil, err
+  }
+  return cast.ToStringMapStringE(m)
+}

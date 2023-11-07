@@ -53,7 +53,7 @@ theme = "mytheme"
 contentDir = "mycontent"
 -- myproject.txt --
 Hello project!
--- theme/mytheme/mytheme.txt --
+-- themes/mytheme/mytheme.txt --
 Hello theme!
 -- mycontent/blog/post.md --
 ---

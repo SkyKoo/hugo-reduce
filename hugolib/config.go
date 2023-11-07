@@ -7,7 +7,7 @@ import (
   "github.com/spf13/afero"
 
   "github.com/SkyKoo/hugo-reduce/common/maps"
-  cpaths "github/SkyKoo/hugo-reduce/common/paths"
+  cpaths "github.com/SkyKoo/hugo-reduce/common/paths"
   "github.com/SkyKoo/hugo-reduce/config"
   "github.com/SkyKoo/hugo-reduce/log"
   "github.com/SkyKoo/hugo-reduce/modules"
@@ -78,6 +78,7 @@ func (l configLoader) applyConfigDefaults() error {
     "sitemap": maps.Params{"priority": -1, "filename": "sitemap.xml"},
     "disableLiveReload": false,
     "pluralizeListTitles": true,
+    "forceSyncStatic": false,
     "footnoteAnchorPrefix": "",
     "footnoteReturnLinkContents": "",
     "newContentEditor": "",
@@ -115,7 +116,7 @@ func (l configLoader) loadModulesConfig() (modules.Config, error) {
 
 func (l configLoader) collectModules(modConfig modules.Config, v1 config.Provider, hookBeforeFinalize func(m *modules.ModulesConfig) error) (modules.Modules, []string, error) {
   workingDir := l.WorkingDir
-  themesDir := cpaths.ApsPathify(l.WorkingDir, v1.GetString("themesDir"))
+  themesDir := cpaths.AbsPathify(l.WorkingDir, v1.GetString("themesDir"))
 
   var configFilenames []string
 
@@ -138,24 +139,24 @@ func (l configLoader) collectModules(modConfig modules.Config, v1 config.Provide
   v1.Set("modulesClient", modulesClient)
 
   // Collect
-  modulesConfig, err := modulesClient.Collect()
+  moduleConfig, err := modulesClient.Collect()
 
   // Active
   // Avoid recreating these later.
   log.Process("collectModules", "set active modules to config with key 'allModules'")
-  for i, m := range modulesConfig.ActiveModules {
+  for i, m := range moduleConfig.ActiveModules {
     fmt.Println(i)
     fmt.Printf("%#v\n", m)
   }
-  v1.Set("allModules", modulesConfig.ActiveModules)
+  v1.Set("allModules", moduleConfig.ActiveModules)
 
-  if modulesConfig.GoModulesFilename != "" {
+  if moduleConfig.GoModulesFilename != "" {
     // We want to watch this for changes and trigger rebuild on version
     // changes etc.
-    configFilenames = append(configFilenames, modulesConfig.GoModulesFilename)
+    configFilenames = append(configFilenames, moduleConfig.GoModulesFilename)
   }
 
-  return modulesConfig.ActiveModules, configFilenames, err
+  return moduleConfig.ActiveModules, configFilenames, err
 }
 
 // 1. first, load config file
