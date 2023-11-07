@@ -2,7 +2,6 @@ package hugolib
 
 import (
   "fmt"
-
   "path/filepath"
 
   "github.com/spf13/afero"
