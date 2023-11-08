@@ -41,6 +41,10 @@ func main() {
   )
   fmt.Printf("%#v\n", cfg)
 
+  // 2. hugo file systems
+  // log.Process("main", "setup hugo file systems based on machine file system and configurations")
+  // hugofs.NewFrom(afs, cfg, tempDir)
+
   fmt.Println("===temp dir at last > ...")
   fmt.Println(tempDir)
 }
