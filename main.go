@@ -12,6 +12,7 @@ import (
   "github.com/SkyKoo/hugo-reduce/hugofs"
   "github.com/SkyKoo/hugo-reduce/log"
   "github.com/SkyKoo/hugo-reduce/hugolib"
+  "github.com/SkyKoo/hugo-reduce/deps"
 )
 
 func main() {
@@ -42,8 +43,11 @@ func main() {
   fmt.Printf("%#v\n", cfg)
 
   // 2. hugo file systems
-  // log.Process("main", "setup hugo file systems based on machine file system and configurations")
-  // hugofs.NewFrom(afs, cfg, tempDir)
+  log.Process("main", "setup hugo file systems based on machine file system and configurations")
+  hugofs.NewFrom(afs, cfg, tempDir)
+
+  // 3. dependencies management
+  depsCfg := deps.DepsCfg{Cfg: cfg, Fs: fs}
 
   fmt.Println("===temp dir at last > ...")
   fmt.Println(tempDir)
