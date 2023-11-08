@@ -295,7 +295,7 @@ func (l configLoader) applyConfigDefaults() error {
 ```
 可以看到 hook 函数中做了两件事，针对每一个收集到的 Module 都需要加载 语言配置 和 Module 的默认配置
 
-同时还要区分活跃和不活跃的 模块， 并不是所有加载的模块都有效，只有活跃的才有效
+同时还要区分活跃和不活跃的模块，并不是所有加载的模块都有效，只有活跃的才有效
 
 # V. 其他细节
 ### 递归处理 map[string]interface{} 类型的配置函数
