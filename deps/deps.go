@@ -4,8 +4,8 @@ import (
 	"github.com/SkyKoo/hugo-reduce/config"
 	"github.com/SkyKoo/hugo-reduce/hugofs"
 	"github.com/SkyKoo/hugo-reduce/langs"
-	"github.com/SkyKoo/hugo-reduce/hugo/media"
-	"github.com/SkyKoo/hugo-reduce/hugo/output"
+	"github.com/SkyKoo/hugo-reduce/media"
+	"github.com/SkyKoo/hugo-reduce/output"
 )
 
 // Deps holds dependencies used by many.
