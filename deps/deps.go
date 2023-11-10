@@ -1,11 +1,14 @@
 package deps
 
 import (
-	"github.com/SkyKoo/hugo-reduce/config"
-	"github.com/SkyKoo/hugo-reduce/hugofs"
-	"github.com/SkyKoo/hugo-reduce/langs"
-	"github.com/SkyKoo/hugo-reduce/media"
-	"github.com/SkyKoo/hugo-reduce/output"
+  "github.com/SkyKoo/hugo-reduce/config"
+  "github.com/SkyKoo/hugo-reduce/hugofs"
+  "github.com/SkyKoo/hugo-reduce/langs"
+  "github.com/SkyKoo/hugo-reduce/media"
+  "github.com/SkyKoo/hugo-reduce/output"
+  "github.com/SkyKoo/hugo-reduce/helpers"
+  "github.com/SkyKoo/hugo-reduce/tpl"
+  "github.com/SkyKoo/hugo-reduce/resources"
 )
 
 // Deps holds dependencies used by many.
@@ -13,7 +16,42 @@ import (
 // at a given time, i.e. one per Site built.
 type Deps struct {
   // The PathSpec to use
-  // *helpers.PathSpec `json:"-"`
+  *helpers.PathSpec `json:"-"`
+
+  // The templates to use. This will usually implement the full tpl.TemplateManager.
+  tmpl tpl.TemplateHandler
+
+  // We use this to parse and execute ad-hoc text templates.
+  textTmpl tpl.TemplateParseFinder
+
+  // All the output formats available for the current site.
+  OutputFormatsConfig output.Formats
+
+  // The Resource Spec to use
+  ResourceSpec *resources.Spec
+
+  // The SourceSpec to use
+  SourceSpec *source.SourceSpec `json:"-"`
+
+  // The ContentSpec to use
+  *helpers.ContentSpec `json:"-"`
+
+  // The site building.
+  Site page.Site
+
+  // The file systems to use.
+  Fs *hugofs.Fs `json:"-"`
+
+  templateProvider ResourceProvider
+
+  // The configuration to use
+  Cfg config.Provider `json:"-"`
+
+  // The language in use. TODO(bep) consolidate with site
+  Language *langs.Language
+
+  // The translation func to use
+  Translate func(translationID string, templateData any) string `json:"-"`
 }
 
 // DepsCfg contains configuration options tha can be used to configure Hugo

@@ -49,6 +49,13 @@ func main() {
   // 3. dependencies management
   depsCfg := deps.DepsCfg{Cfg: cfg, Fs: fs}
 
+  // 4. hugo istes
+  log.Process("main", "create hugo sites based on deps")
+  sites, err := hugolib.NewHugoSites(depsCfg)
+
+  fmt.Println("HugoSites:")
+  fmt.Printf("%#v\n", sites)
+  fmt.Printf("%#v\n", sites.Sites[0])
   fmt.Println("===temp dir at last > ...")
   fmt.Println(tempDir)
 }
