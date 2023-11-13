@@ -31,3 +31,22 @@ type SuffixInfo struct {
 
 // Types is a slice of media types.
 type Types []Type
+
+// DefaultTypes is the default media types supported by Hugo.
+var DefaultTypes = Types{
+  HTMLType,
+  MarkdownType,
+  TOMLType,
+  TextType,
+}
+
+// DecodeTypes takes a list of media type configurations and merges those,
+// in the order given, with the Hugo defaults as the last resort.
+func DecodeTypes(mms ...map[string]any) (Types, error) {
+  var m Types
+
+  // Maps type string to Type. Type string is the full application/svg+xml.
+  mmm := make(map[string]Type)
+  for _, dt := range DefaultTypes {
+  }
+}

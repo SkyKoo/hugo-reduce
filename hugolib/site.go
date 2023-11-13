@@ -1,13 +1,15 @@
 package hugolib
 
 import (
-  "time"
+	"time"
 
-  "github.com/SkyKoo/hugo-reduce/langs"
-  "github.com/SkyKoo/hugo-reduce/media"
-  "github.com/SkyKoo/hugo-reduce/output"
-  "github.com/SkyKoo/hugo-reduce/publisher"
-  "github.com/SkyKoo/hugo-reduce/deps"
+	"github.com/SkyKoo/hugo-reduce/deps"
+	"github.com/SkyKoo/hugo-reduce/langs"
+	"github.com/SkyKoo/hugo-reduce/log"
+	"github.com/SkyKoo/hugo-reduce/media"
+	"github.com/SkyKoo/hugo-reduce/output"
+	"github.com/SkyKoo/hugo-reduce/publisher"
+	"github.com/gohugoio/hugo/helpers"
 )
 
 // Site contains all the information relevant for constucting a static
@@ -89,6 +91,64 @@ type SiteInfo struct {
 
   owner *HugoSites
   s *Site
+}
+
+// newSite creates a new site with the given configuration.
+func newSite(cfg deps.DepsCfg) (*Site, error) {
+  var (
+    mediaTypesConfig []map[string]any
+    outputFormatsConfig []map[string]any
+
+    siteOutputFormatsConfig output.Formats
+    siteMediaTypesCofnig media.Types
+    err error
+  )
+
+  // [{toml}, {html}, {markdown}, {plain}]
+  log.Process("media.DecodeTypes", "set default media types")
+  siteMediaTypesCofnig, err = media.DecodeTypes(mediaTypesConfig...)
+  if err != nil {
+    return nil, err
+  }
+
+  // {{HTML}, {JSON}, {MARKDOWN}]
+  log.Process("output.DecodeFormats", "set default output formats based on media types, and customized output formats configuration")
+  siteOutputFormatsConfig, err = output.DecodeFormats(siteMediaTypesCofnig, outputFormatsConfig...)
+
+  if err != nil {
+    return nil, err
+  }
+
+  // Site output formats source
+  log.Process("site output formats", "map siteOutputFormats to every hugo page types(KindPage, KindHome...)")
+  outputFormats, err := createSiteOutputFormats(siteOutputFormatsConfig, nil, true)
+
+  if err != nil {
+    return nil, err
+  }
+
+  // KindTaxonomy, KindTerm like section title
+  titleFunc := helpers.GetTitleFunc("")
+
+  siteConfig := siteConfigHolder{
+    timeout: 30 * time.Second, // page content output init timeout
+  }
+
+  var siteBucket *pagesMapBucket
+
+  s := &Site{
+    language: cfg.Language,
+    siteBucket: siteBucket,
+
+    outputFormats: outputFormats,
+    outputFormatsConfig: siteOutputFormatsConfig,
+    mediaTypesConfig: siteMediaTypesCofnig,
+
+    siteCfg: siteConfig,
+    titleFunc: titleFunc,
+  }
+
+  return s, nil
 }
 
 type siteConfigHolder struct {

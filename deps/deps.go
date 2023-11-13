@@ -9,6 +9,8 @@ import (
   "github.com/SkyKoo/hugo-reduce/helpers"
   "github.com/SkyKoo/hugo-reduce/tpl"
   "github.com/SkyKoo/hugo-reduce/resources"
+  "github.com/SkyKoo/hugo-reduce/resources/page"
+  "github.com/SkyKoo/hugo-reduce/source"
 )
 
 // Deps holds dependencies used by many.

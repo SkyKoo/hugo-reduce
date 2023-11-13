@@ -1,3 +1,15 @@
+github.com/bep/helpers v0.4.0/go.mod h1:/QpHdmcPagDw7+RjkLFCvnlUc8lQ5kg4KDrEkb2Yyco=
+github.com/bep/mclib v1.20400.20402/go.mod h1:pkrk9Kyfqg34Uj6XlDq9tdEFJBiL1FvCoCgVKRzw1EY=
+github.com/bep/simplecobra v0.3.2/go.mod h1:EOp6bCKuuHmwA9bQcRC8LcDB60co2Cmht5X4xMIOwf0=
+github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
+github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
+github.com/gohugoio/testmodBuilder/mods v0.0.0-20190520184928-c56af20f2e95/go.mod h1:bOlVlCa1/RajcHpXkrUXPSHB/Re1UnlXxD1Qp8SKOd8=
 github.com/golang/protobuf v1.4.3 h1:JjCZWpVbqXDqFVmTfYWEVTMIYrL/NPdPSCHPJ0T/raM=
+github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
+github.com/spf13/cobra v1.7.0/go.mod h1:uLxZILRyS/50WlhOIKD7W6V5bgeIt+4sICxh6uRMrb0=
+github.com/spf13/fsync v0.9.0/go.mod h1:fNtJEfG3HiltN3y4cPOz6MLjos9+2pIEqLIgszqhp/0=
+go.uber.org/automaxprocs v1.5.3/go.mod h1:eRbA25aqJrxAbsLO0xy5jVwPt7FQnRgjW+efnwa1WM0=
 google.golang.org/genproto v0.0.0-20210226172003-ab064af71705 h1:PYBmACG+YEv8uQPW0r1kJj8tR+gkF0UWq7iFdUezwEw=
 google.golang.org/protobuf v1.25.0 h1:Ejskq+SyPohKW+1uil0JJMtmHCgJPJ/qWTxr8qp+R4c=
+software.sslmate.com/src/go-pkcs12 v0.2.0/go.mod h1:23rNcYsMabIc1otwLpTkCCPwUq6kQsTyowttG/as0kQ=
