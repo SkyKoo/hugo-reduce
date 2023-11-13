@@ -7,15 +7,15 @@ import (
   "github.com/SkyKoo/hugo-reduce/deps"
   "github.com/SkyKoo/hugo-reduce/output"
   "github.com/SkyKoo/hugo-reduce/common/para"
-  "github.com/SkyKoo/hugo-reduce/lazy"
+  // "github.com/SkyKoo/hugo-reduce/lazy"
 )
 
 type hugoSitesInit struct {
   // Loads the data from all of the /data folders.
-  data *lazy.Init
+  // data *lazy.Init
 
   // Performs late initialization (before render) of the templates.
-  layouts *lazy.Init
+  // layouts *lazy.Init
 }
 
 // HugoSites represents the sites to build. Each site represents a language.

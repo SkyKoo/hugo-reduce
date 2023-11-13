@@ -1,9 +1,13 @@
 package hugolib
 
 import (
-	"github.com/SkyKoo/hugo-reduce/langs"
-	"github.com/SkyKoo/hugo-reduce/media"
-	"github.com/SkyKoo/hugo-reduce/output"
+  "time"
+
+  "github.com/SkyKoo/hugo-reduce/langs"
+  "github.com/SkyKoo/hugo-reduce/media"
+  "github.com/SkyKoo/hugo-reduce/output"
+  "github.com/SkyKoo/hugo-reduce/publisher"
+  "github.com/SkyKoo/hugo-reduce/deps"
 )
 
 // Site contains all the information relevant for constucting a static
@@ -37,4 +41,56 @@ type Site struct {
   // finally, the language settings.
   outputFormatsConfig output.Formats
   mediaTypesConfig media.Types
+
+  siteCfg siteConfigHolder
+
+  // The func used to title case titles.
+  titleFunc func(s string) string
+
+  // newSite with above infos
+
+  // The owning container. When multiple languages, there will be multiple
+  // sites.
+  h *HugoSites
+
+  *PageCollections
+
+  Sections Taxonomy
+  Info *SiteInfo
+
+  // The output formats that we need to render this site in. This slice
+  // will be fixed once set.
+  // This will be the union of Site.Pages' outputFormats.
+  // This slice will be sorted.
+  renderFormats output.Formats
+
+  // Logger etc.
+  *deps.Deps `json:"-"`
+
+  siteRefLinker
+
+  publisher publisher.Publisher
+
+  // Shortcut to the home page. Note that this may be nil if
+  // home page, for some odd reason, is disabled.
+  home *pageState
+}
+
+type siteRefLinker struct {
+  s *Site
+
+  notFoundURL string
+}
+
+type SiteInfo struct {
+  title string
+
+  relativeURLs bool
+
+  owner *HugoSites
+  s *Site
+}
+
+type siteConfigHolder struct {
+  timeout time.Duration
 }

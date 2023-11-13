@@ -44,7 +44,7 @@ func main() {
 
   // 2. hugo file systems
   log.Process("main", "setup hugo file systems based on machine file system and configurations")
-  hugofs.NewFrom(afs, cfg, tempDir)
+  fs := hugofs.NewFrom(afs, cfg, tempDir)
 
   // 3. dependencies management
   depsCfg := deps.DepsCfg{Cfg: cfg, Fs: fs}
