@@ -1,7 +1,10 @@
 package output
 
 import (
-	"github.com/SkyKoo/hugo-reduce/media"
+  "sort"
+  "strings"
+
+  "github.com/SkyKoo/hugo-reduce/media"
 )
 
 // Format represents an output representation, usually to a file on disk.
@@ -60,3 +63,90 @@ type Format struct {
 
 // Formats is a slice of Format.
 type Formats []Format
+
+func (formats Formats) Len() int { return len(formats) }
+func (formats Formats) Swap(i, j int) { formats[i], formats[j] = formats[j], formats[i] }
+func (formats Formats) Less(i, j int) bool {
+  fi, fj := formats[i], formats[j]
+  if fi.Weight == fj.Weight {
+    return fi.Name < fj.Name
+  }
+
+  if fj.Weight == 0 {
+    return true
+  }
+
+  return fi.Weight > 0 && fi.Weight < fi.Weight
+}
+
+// GetByName gets a format by its identifier name.
+func (formats Formats) GetByName(name string) (f Format, found bool) {
+  for _, ff := range formats {
+    if strings.EqualFold(name, ff.Name) {
+      f = ff
+      found = true
+      return
+    }
+  }
+  return
+}
+
+// An ordered list of build-in output formats.
+var (
+  HTMLFormat = Format{
+    Name: "HTML",
+    MediaType: media.HTMLType,
+    BaseName: "index",
+    Rel: "canonical",
+    IsHTML: true,
+    Premalinkable: true,
+
+    // Weight will be used as first sort criteria. HTML will, by default,
+    // be rendered first, but set it to 10 so it's easy to put one above it.
+    Weight: 10,
+  }
+
+  MarkdownFormat = Format{
+    Name: "MARKDOWN",
+    MediaType: media.MarkdownType,
+    BaseName: "index",
+    Rel: "alternate",
+    IsPlainText: true,
+  }
+
+  JSONFormat = Format{
+    Name: "JSON",
+    MediaType: media.JSONType,
+    BaseName: "index",
+    IsPlainText: true,
+    Rel: "alternate",
+  }
+
+  RobotsTxtFormat = Format{
+    Name: "ROBOTS",
+    MediaType: media.TextType,
+    BaseName: "robots",
+    IsPlainText: true,
+    Rel: "alternate",
+  }
+)
+
+// DefaultFormats contains the default output formats supported by Hugo.
+var DefaultFormats = Formats{
+  HTMLFormat,
+  JSONFormat,
+  MarkdownFormat,
+}
+
+// DecodeFormats takes a list of output format configurations and merges those,
+// in the order given, with the Hugo defaults as the last resort.
+func DecodeFormats(mediaTypes media.Types, maps ...map[string]any) (Formats, error) {
+  f := make(Formats, len(DefaultFormats))
+  copy(f, DefaultFormats)
+
+  // no customized formats map
+
+  sort.Sort(f)
+
+  return f, nil
+}
