@@ -30,3 +30,5 @@ var (
 
   ComponentFoldersSet = make(map[string]bool)
 )
+
+type ContentClass string

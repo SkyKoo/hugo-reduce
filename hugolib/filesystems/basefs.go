@@ -1,7 +1,7 @@
 package filesystems
 
 import (
-	"github.com/gohugoio/hugo/hugofs"
+	"github.com/SkyKoo/hugo-reduce/hugofs"
 	"github.com/spf13/afero"
 )
 

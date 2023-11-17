@@ -1,15 +1,15 @@
 package hugolib
 
 import (
-	"time"
+  "time"
 
-	"github.com/SkyKoo/hugo-reduce/deps"
-	"github.com/SkyKoo/hugo-reduce/langs"
-	"github.com/SkyKoo/hugo-reduce/log"
-	"github.com/SkyKoo/hugo-reduce/media"
-	"github.com/SkyKoo/hugo-reduce/output"
-	"github.com/SkyKoo/hugo-reduce/publisher"
-	"github.com/gohugoio/hugo/helpers"
+  "github.com/SkyKoo/hugo-reduce/deps"
+  "github.com/SkyKoo/hugo-reduce/langs"
+  "github.com/SkyKoo/hugo-reduce/log"
+  "github.com/SkyKoo/hugo-reduce/media"
+  "github.com/SkyKoo/hugo-reduce/output"
+  "github.com/SkyKoo/hugo-reduce/publisher"
+  "github.com/SkyKoo/hugo-reduce/helpers"
 )
 
 // Site contains all the information relevant for constucting a static
