@@ -99,6 +99,21 @@ func (d Decoder) UnmarshalTo(data []byte, f Format, v any) error {
   return err
 }
 
+// Unmarshal will unmarshall data in format f into an interface{}.
+// This is what's needed for Hugo's /data handling.
+func (d Decoder) Unmarshal(data []byte, f Format) (any, error) {
+  if data == nil {
+    switch f {
+    default:
+      return make(map[string]any), nil
+    }
+  }
+  var v any
+  err := d.UnmarshalTo(data, f, &v)
+
+  return v, err
+}
+
 // stringifyMapKeys recurse into in and changes all instances of
 // map[interface{}]interface{} to map[string]interface{}. This is useful to
 // work around the impedance mismatch between JSON and YAML unmarshaling that's

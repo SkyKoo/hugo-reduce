@@ -2,7 +2,10 @@ package hugofs
 
 import (
 	"os"
+  "errors"
+  "runtime"
 
+  "golang.org/x/text/unicode/norm"
 	"github.com/spf13/afero"
 
 	"github.com/SkyKoo/hugo-reduce/hugofs/glob"
@@ -45,7 +48,43 @@ type FileMeta struct {
   InclusionFilter *glob.FilenameFilter
 }
 
+func (f *FileMeta) Open() (afero.File, error) {
+  if f.OpenFunc == nil {
+    return nil, errors.New("OpenFunc not set")
+  }
+  return f.OpenFunc()
+}
+
 type FileMetaInfo interface {
   os.FileInfo
   Meta() *FileMeta
+}
+
+type fileInfoMeta struct {
+  os.FileInfo
+
+  m *FileMeta
+}
+
+func (fi *fileInfoMeta) Meta() *FileMeta {
+  return fi.m
+}
+
+func fileInfosToFileMetaInfos(fis []os.FileInfo) []FileMetaInfo {
+  fims := make([]FileMetaInfo, len(fis))
+  for i, v := range fis {
+    fims[i] = v.(FileMetaInfo)
+  }
+  return fims
+}
+
+func normalizeFilename(filename string) string {
+  if filename == "" {
+    return ""
+  }
+  if runtime.GOOS == "darwin" {
+    // When a file system is HFS+, its filepath is in NFD form.
+    return norm.NFC.String(filename)
+  }
+  return filename
 }

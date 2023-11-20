@@ -1,7 +1,10 @@
 package source
 
 import (
-  "github.com/SkyKoo/hugo-reduce/hugofs"
+  "sync"
+
+	"github.com/SkyKoo/hugo-reduce/hugofs"
+	"github.com/SkyKoo/hugo-reduce/hugofs/files"
 )
 
 // File represents a source file.
@@ -59,4 +62,33 @@ type FileWithoutOverlap interface {
   UniqueID() string
 
   FileInfo() hugofs.FileMetaInfo
+}
+
+// FileInfo describes a source file.
+type FileInfo struct {
+
+  // Absolute filename to the file on disk.
+  filename string
+
+  sp *SourceSpec
+
+  fi hugofs.FileMetaInfo
+
+  // Derived from filename
+  ext string // Extension without any "."
+
+  name string
+
+  dir string
+  relDir string
+  relPath string
+  baseName string
+  translationBaseName string
+  contentBaseName string
+  section string
+  classifier files.ContentClass
+
+  uniqueID string
+
+  lazyInit sync.Once
 }

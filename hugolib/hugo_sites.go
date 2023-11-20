@@ -2,15 +2,18 @@ package hugolib
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/SkyKoo/hugo-reduce/common/para"
 	"github.com/SkyKoo/hugo-reduce/config"
 	"github.com/SkyKoo/hugo-reduce/deps"
+	"github.com/SkyKoo/hugo-reduce/helpers"
+	"github.com/SkyKoo/hugo-reduce/hugofs"
+	"github.com/SkyKoo/hugo-reduce/lazy"
 	"github.com/SkyKoo/hugo-reduce/log"
 	"github.com/SkyKoo/hugo-reduce/output"
-	"github.com/SkyKoo/hugo-reduce/lazy"
-	"github.com/SkyKoo/hugo-reduce/hugofs"
+	"github.com/SkyKoo/hugo-reduce/parser/metadecoders"
 	"github.com/SkyKoo/hugo-reduce/source"
 )
 
@@ -137,4 +140,94 @@ func (h *HugoSites) loadData(fis []hugofs.FileMetaInfo) (err error) {
   }
 
   return
+}
+
+func (h *HugoSites) handleDataFile(r source.File) error {
+  var current map[string]any
+
+  f, err := r.FileInfo().Meta().Open()
+  if err != nil {
+    return fmt.Errorf("data: filed to open %q: %w", r.LogicalName(), err)
+  }
+  defer f.Close()
+
+  // Crawl in data tree to insert data
+  current = h.data
+  keyParts := strings.Split(r.Dir(), helpers.FilePathSeparator)
+
+  for _, key := range keyParts {
+    if key != "" {
+      if _, ok := current[key]; !ok {
+        current[key] = make(map[string]any)
+      }
+      current = current[key].(map[string]any)
+    }
+  }
+
+  data, err := h.readData(r)
+  if err != nil {
+    return err
+  }
+
+  if data == nil {
+    return nil
+  }
+
+  // filepath.Walk walks the files in lexical order, '/' comes before '.'
+  higherPrecedentData := current[r.BaseFileName()]
+
+  switch data.(type) {
+  case nil:
+  case map[string]any:
+
+    switch higherPrecedentData.(type) {
+    case nil:
+      current[r.BaseFileName()] = data
+    case map[string]any:
+      // merge maps: insert entries from data for keys that
+      // don't already exist in higherPrecedentData
+      higherPrecedentMap := higherPrecedentData.(map[string]any)
+      for key, value := range data.(map[string]any) {
+        if _, exists := higherPrecedentMap[key]; exists {
+          // this warning could happen if
+          // 1. A theme used the same key; the main data folder wins
+          // 2. A sub folder uses the same key; the sub folder wins
+          // TODO(bep) figure out a way to detect 2) above and make that a WARN
+          fmt.Printf("Data for key '%s' in path '%s' is overridden by higher precedence data already in the data tree", key, r.Path())
+        } else {
+          higherPrecedentMap[key] = value
+        }
+      }
+    default:
+      // can't merge: higherPrecedentData is not a map
+      fmt.Printf("The %T data from '%s' overridden by "+
+      "higher precedence %T data already in the data tree", data, r.Path(), higherPrecedentData)
+    }
+
+  case []any:
+    if higherPrecedentData == nil {
+      current[r.BaseFileName()] = data
+    } else {
+      // we don't merge array data
+      fmt.Printf("The %T data from '%s' overridden by "+
+      "higher precedence %T data already in the data tree", data, r.Path(), higherPrecedentData)
+    }
+
+  default:
+    fmt.Printf("unexpected data type %T in file %s", data, r.LogicalName())
+  }
+
+  return nil
+}
+
+func (h *HugoSites) readData(f source.File) (any, error) {
+  file, err := f.FileInfo().Meta().Open()
+  if err != nil {
+    return nil, fmt.Errorf("readData: failed to open data file: %w", err)
+  }
+  defer file.Close()
+  content := helpers.ReaderToBytes(file)
+
+  format := metadecoders.FormatFromString(f.Ext())
+  return metadecoders.Default.Unmarshal(content, format)
 }

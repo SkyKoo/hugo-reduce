@@ -2,6 +2,7 @@ package source
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 
 	"github.com/SkyKoo/hugo-reduce/hugofs"
@@ -68,4 +69,35 @@ func (f *Filesystem) captureFiles() error {
   })
 
   return w.Walk()
+}
+
+func (f *Filesystem) shouldRead(filename string, fi hugofs.FileMetaInfo) (bool, error) {
+  ignore := f.SourceSpec.IgnoreFile(fi.Meta().Filename)
+
+  if fi.IsDir() {
+    if ignore {
+      return false, filepath.SkipDir
+    }
+    return false, nil
+  }
+
+  if ignore {
+    return false, nil
+  }
+
+  return true, nil
+}
+
+// add populates a file in the Filesystem.files
+func (f *Filesystem) add(name string, fi hugofs.FileMetaInfo) (err error) {
+  var file File
+
+  file, err = f.SourceSpec.NewFileInfo(fi)
+  if err != nil {
+    return err
+  }
+
+  f.files = append(f.files, file)
+
+  return err
 }
