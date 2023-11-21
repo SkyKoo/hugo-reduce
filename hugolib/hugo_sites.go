@@ -15,6 +15,7 @@ import (
 	"github.com/SkyKoo/hugo-reduce/output"
 	"github.com/SkyKoo/hugo-reduce/parser/metadecoders"
 	"github.com/SkyKoo/hugo-reduce/source"
+	"github.com/SkyKoo/hugo-reduce/tpl"
 )
 
 type hugoSitesInit struct {
@@ -119,7 +120,33 @@ func newHugoSites(cfg deps.DepsCfg, sites ...*Site) (*HugoSites, error) {
     return nil, nil
   })
 
-  return nil, initErr
+  log.Process("newHugoSites", "add layouts to h.init")
+  h.init.layouts.Add(func() (any, error) {
+    log.Process("newHugoSites", "h.init run s.Tmpl().MarkRead")
+    for _, s := range h.Sites {
+      if err := s.Tmpl().(tpl.TemplateManager).MarkReady(); err != nil {
+        return nil, err
+      }
+    }
+    return nil, nil
+  })
+
+  for _, s := range sites {
+    s.h = h
+  }
+
+  log.Process("newHugoSites", "configLoader applyDeps")
+  var l configLoader
+  if err := l.applyDeps(cfg, sites...); err != nil {
+    initErr = fmt.Errorf("add site dependencies: %w", err)
+  }
+
+  h.Deps = sites[0].Deps
+  if h.Deps == nil {
+    return nil, initErr
+  }
+
+  return h, initErr
 }
 
 func (h *HugoSites) loadData(fis []hugofs.FileMetaInfo) (err error) {
@@ -217,6 +244,11 @@ func (h *HugoSites) handleDataFile(r source.File) error {
     fmt.Printf("unexpected data type %T in file %s", data, r.LogicalName())
   }
 
+  return nil
+}
+
+func (l configLoader) applyDeps(cfg deps.DepsCfg, sites ...*Site) error {
+  log.Process("applyDeps", "set cfg.TemplateProvider with DefaultTemplateProvider")
   return nil
 }
 

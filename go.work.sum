@@ -1,3 +1,4 @@
+cloud.google.com/go v0.75.0 h1:XgtDnVJRCPEUG21gjFiRPz4zI1Mjg16R+NYQjfmU4XY=
 github.com/bep/helpers v0.4.0/go.mod h1:/QpHdmcPagDw7+RjkLFCvnlUc8lQ5kg4KDrEkb2Yyco=
 github.com/bep/mclib v1.20400.20402/go.mod h1:pkrk9Kyfqg34Uj6XlDq9tdEFJBiL1FvCoCgVKRzw1EY=
 github.com/bep/simplecobra v0.3.2/go.mod h1:EOp6bCKuuHmwA9bQcRC8LcDB60co2Cmht5X4xMIOwf0=
@@ -11,8 +12,12 @@ github.com/spf13/cobra v1.7.0/go.mod h1:uLxZILRyS/50WlhOIKD7W6V5bgeIt+4sICxh6uRM
 github.com/spf13/fsync v0.9.0/go.mod h1:fNtJEfG3HiltN3y4cPOz6MLjos9+2pIEqLIgszqhp/0=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.uber.org/automaxprocs v1.5.3/go.mod h1:eRbA25aqJrxAbsLO0xy5jVwPt7FQnRgjW+efnwa1WM0=
+golang.org/x/oauth2 v0.0.0-20210218202405-ba52d332ba99 h1:5vD4XjIc0X5+kHZjx4UecYdjA6mJo+XXNoaW0EjU5Os=
 golang.org/x/sync v0.4.0/go.mod h1:FU7BRWz2tNW+3quACPkgCx/L+uEAv1htQ0V83Z9Rj+Y=
+golang.org/x/sys v0.13.0 h1:Af8nKPmuFypiUBjVoU9V20FiaFXOcuZI21p0ycVYYGE=
 golang.org/x/sys v0.13.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+google.golang.org/api v0.40.0 h1:uWrpz12dpVPn7cojP82mk02XDgTJLDPc2KbVTxrWb4A=
 google.golang.org/genproto v0.0.0-20210226172003-ab064af71705 h1:PYBmACG+YEv8uQPW0r1kJj8tR+gkF0UWq7iFdUezwEw=
+google.golang.org/grpc v1.35.0 h1:TwIQcH3es+MojMVojxxfQ3l3OF2KzlRxML2xZq0kRo8=
 google.golang.org/protobuf v1.25.0 h1:Ejskq+SyPohKW+1uil0JJMtmHCgJPJ/qWTxr8qp+R4c=
 software.sslmate.com/src/go-pkcs12 v0.2.0/go.mod h1:23rNcYsMabIc1otwLpTkCCPwUq6kQsTyowttG/as0kQ=

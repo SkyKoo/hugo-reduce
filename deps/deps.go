@@ -84,3 +84,7 @@ type ResourceProvider interface {
   Update(deps *Deps) error
   Clone(deps *Deps) error
 }
+
+func (d *Deps) Tmpl() tpl.TemplateHandler {
+  return d.tmpl
+}

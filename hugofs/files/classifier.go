@@ -32,3 +32,14 @@ var (
 )
 
 type ContentClass string
+
+const (
+  ContentClassLeaf ContentClass = "leaf"
+  ContentClassBranch ContentClass = "branch"
+  ContentClassFile ContentClass = "zfile" // Sort below
+  ContentClassContent ContentClass = "zcontent"
+)
+
+func (c ContentClass) IsBundle() bool {
+  return c == ContentClassLeaf || c == ContentClassBranch
+}

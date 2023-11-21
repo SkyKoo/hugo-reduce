@@ -1,13 +1,13 @@
 package source
 
 import (
-	"path/filepath"
-	"strings"
-	"sync"
+  "path/filepath"
+  "strings"
+  "sync"
 
-	"github.com/SkyKoo/hugo-reduce/helpers"
-	"github.com/SkyKoo/hugo-reduce/hugofs"
-	"github.com/SkyKoo/hugo-reduce/hugofs/files"
+  "github.com/SkyKoo/hugo-reduce/helpers"
+  "github.com/SkyKoo/hugo-reduce/hugofs"
+  "github.com/SkyKoo/hugo-reduce/hugofs/files"
 )
 
 // File represents a source file.

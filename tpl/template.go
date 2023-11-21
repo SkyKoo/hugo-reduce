@@ -6,6 +6,7 @@ import (
   "reflect"
 
   "github.com/SkyKoo/hugo-reduce/output"
+  "github.com/SkyKoo/hugo-reduce/tpl/internal/go_templates/texttemplate"
 )
 
 // TemplateManager manages the collection of templates.
@@ -28,7 +29,7 @@ type TemplateHandler interface {
 // Template is the common interface between text/template and html/template.
 type Template interface {
   Name() string
-  // Prepare() (*texttemplate.Template, error)
+  Prepare() (*texttemplate.Template, error)
 }
 
 // TemplateFinder finds templates.
@@ -50,6 +51,13 @@ type TemplateParseFinder interface {
 // TemplateParser is used to parse ad-hoc templates, e.g. in the Resource chain.
 type TemplateParser interface {
   Parse(name, tpl string) (Template, error)
+}
+
+// TemplateVariants describes the possible variants of a template.
+// All of these may be empty.
+type TemplateVariants struct {
+  Language string
+  OutputFormat output.Format
 }
 
 type TemplateLookup interface {
