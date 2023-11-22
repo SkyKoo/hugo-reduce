@@ -2,10 +2,10 @@ package tplimpl
 
 import (
 	"reflect"
-	"text/template"
 
 	"github.com/SkyKoo/hugo-reduce/deps"
 	"github.com/SkyKoo/hugo-reduce/log"
+	template "github.com/SkyKoo/hugo-reduce/tpl/internal/go_templates/htmltemplate"
 	"github.com/SkyKoo/hugo-reduce/tpl/internal/go_templates/texttemplate"
 )
 
@@ -67,4 +67,8 @@ func createFuncMap(d *deps.Deps) map[string]any {
   }
 
   return funcMap
+}
+
+type templateExecHelper struct {
+  funcs map[string]reflect.Value
 }
