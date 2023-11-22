@@ -16,6 +16,7 @@ import (
 	"github.com/SkyKoo/hugo-reduce/parser/metadecoders"
 	"github.com/SkyKoo/hugo-reduce/source"
 	"github.com/SkyKoo/hugo-reduce/tpl"
+	"github.com/SkyKoo/hugo-reduce/tpl/tplimpl"
 )
 
 type hugoSitesInit struct {
@@ -249,6 +250,73 @@ func (h *HugoSites) handleDataFile(r source.File) error {
 
 func (l configLoader) applyDeps(cfg deps.DepsCfg, sites ...*Site) error {
   log.Process("applyDeps", "set cfg.TemplateProvider with DefaultTemplateProvider")
+  if cfg.TemplateProvider == nil {
+    cfg.TemplateProvider = tplimpl.DefaultTemplateProvider
+  }
+
+  var (
+    d *deps.Deps
+  )
+
+  for _, s := range sites {
+    if s.Deps != nil {
+      continue
+    }
+
+    onCreated := func(d *deps.Deps) error {
+      s.Deps = d
+
+      log.Process("applyDeps-onCreate", "set site publisher as DestinationPublisher")
+      // Set up the main publishing chain.
+      pub, err := publisher.NewDestinationPublisher(
+        d.ResourceSpec,
+        s.outputFormatsConfig,
+        s.mediaTypesConfig,
+      )
+      if err != nil {
+        return err
+      }
+      s.publisher = pub
+
+      log.Process("applyDeps-onCreate site initializeSiteInfo", "set site title and owner")
+      if err := s.initializeSiteInfo; err != nil {
+        return err
+      }
+
+      log.Process("ayylyDeps-onCreate pageMap", "with pageTree, bundleTree and pages, sections, resources")
+      pm := &pageMap{
+        contentMap: newContentMap(),
+        s: s,
+      }
+
+      log.Process("applyDeps-onCreate site PageCollections", "with pageMap")
+      s.PageCollections = newPageCollections(pm)
+      return err
+    }
+
+    cfg.Language = s.language
+    cfg.MediaTypes = s.mediaTypesConfig
+    cfg.OutputFormats = s.outputFormatsConfig
+
+    var err error
+    log.Process("applyDeps", "new deps")
+    d, err = deps.New(cfg)
+    if err != nil {
+      return fmt.Errorf("create deps: %w", err)
+    }
+
+    d.OutputFormatsConfig = s.outputFormatsConfig
+
+    if err := onCreated(d); err != nil {
+      return fmt.Errorf("on created: %w", err)
+    }
+
+    log.Process("applyDeps", "deps LoadResources to update template provider, need to make template ready")
+    if err = d.LoadResources(); err != nil {
+      return fmt.Errorf("load resources: %w", err)
+    }
+  }
+
   return nil
 }
 
